@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { ConfirmModal } from '../components/ConfirmModal'
 import { ExerciseForm } from '../components/ExerciseForm'
 import {
   deleteExerciseFromDay,
@@ -8,17 +9,21 @@ import {
   getProgramById,
   upsertDayExercises,
 } from '../firebase/firestore'
+import { useToast } from '../context/ToastContext'
 import type { DayPlan, Exercise, Program } from '../types'
 import { formatReadableDate, generateDateRange } from '../utils/date'
 
 export const ProgramDetailsPage = () => {
   const { id } = useParams()
+  const { success, error: showError, info } = useToast()
 
   const [program, setProgram] = useState<Program | null>(null)
   const [days, setDays] = useState<DayPlan[]>([])
   const [formDate, setFormDate] = useState<string | null>(null)
   const [editingExercise, setEditingExercise] = useState<Exercise | undefined>(undefined)
   const [loading, setLoading] = useState(true)
+  const [deletingExercise, setDeletingExercise] = useState<{ dayId: string; exerciseId: string } | null>(null)
+  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState('')
 
   const load = async () => {
@@ -80,6 +85,7 @@ export const ProgramDetailsPage = () => {
     setFormDate(null)
     setEditingExercise(undefined)
     await load()
+    success(existingIndex === -1 ? 'Exercise added.' : 'Exercise updated.')
   }
 
   const handleEditExercise = (date: string, exercise: Exercise) => {
@@ -87,12 +93,23 @@ export const ProgramDetailsPage = () => {
     setEditingExercise(exercise)
   }
 
-  const handleDeleteExercise = async (dayId: string, exerciseId: string) => {
+  const handleDeleteExercise = async () => {
+    if (!deletingExercise) {
+      return
+    }
+
     try {
-      await deleteExerciseFromDay(dayId, exerciseId)
+      setDeleting(true)
+      await deleteExerciseFromDay(deletingExercise.dayId, deletingExercise.exerciseId)
       await load()
+      success('Exercise deleted.')
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : 'Unable to delete exercise')
+      const message = deleteError instanceof Error ? deleteError.message : 'Unable to delete exercise'
+      setError(message)
+      showError(message)
+    } finally {
+      setDeleting(false)
+      setDeletingExercise(null)
     }
   }
 
@@ -104,6 +121,7 @@ export const ProgramDetailsPage = () => {
     const index = dateRange.findIndex((value) => value === targetDate)
     if (index <= 0) {
       setError('No previous day to duplicate from.')
+      info('No previous day to duplicate from.')
       return
     }
 
@@ -112,8 +130,11 @@ export const ProgramDetailsPage = () => {
     try {
       await duplicateDayExercises(program.id, sourceDate, targetDate)
       await load()
+      success('Day duplicated from previous date.')
     } catch (duplicateError) {
-      setError(duplicateError instanceof Error ? duplicateError.message : 'Unable to duplicate day')
+      const message = duplicateError instanceof Error ? duplicateError.message : 'Unable to duplicate day'
+      setError(message)
+      showError(message)
     }
   }
 
@@ -203,7 +224,7 @@ export const ProgramDetailsPage = () => {
                           className="ghost-button"
                           onClick={() => {
                             if (day) {
-                              void handleDeleteExercise(day.id, exercise.id)
+                              setDeletingExercise({ dayId: day.id, exerciseId: exercise.id })
                             }
                           }}
                         >
@@ -220,6 +241,16 @@ export const ProgramDetailsPage = () => {
           )
         })}
       </section>
+
+      <ConfirmModal
+        isOpen={Boolean(deletingExercise)}
+        title="Delete Exercise"
+        message="This exercise will be removed from the selected day. This action cannot be undone."
+        confirmLabel="Delete Exercise"
+        onConfirm={() => void handleDeleteExercise()}
+        onCancel={() => setDeletingExercise(null)}
+        isConfirming={deleting}
+      />
     </div>
   )
 }

@@ -153,7 +153,8 @@ select:focus {
 }
 
 .primary-button,
-.ghost-button {
+.ghost-button,
+.danger-button {
   border-radius: 0.65rem;
   border: 1px solid transparent;
   padding: 0.58rem 0.95rem;
@@ -182,14 +183,27 @@ select:focus {
   border-color: #F97316;
 }
 
+.danger-button {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #b91c1c;
+  font-weight: 600;
+}
+
+.danger-button:hover {
+  background: #dc2626;
+}
+
 .primary-button:hover,
-.ghost-button:hover {
+.ghost-button:hover,
+.danger-button:hover {
   transform: translateY(-1px);
   transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
 }
 
 .primary-button:disabled,
-.ghost-button:disabled {
+.ghost-button:disabled,
+.danger-button:disabled {
   opacity: 0.65;
   cursor: not-allowed;
   transform: none;
@@ -385,6 +399,73 @@ select:focus {
   animation: fadeIn 0.25s ease;
 }
 
+.toast-viewport {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 100;
+  display: grid;
+  gap: 0.55rem;
+  width: min(360px, calc(100vw - 2rem));
+}
+
+.toast {
+  border-radius: 0.75rem;
+  border: 1px solid #252a38;
+  background: #141822;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+  padding: 0.65rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  animation: toastIn 0.18s ease;
+}
+
+.toast-success {
+  border-color: #1f5533;
+}
+
+.toast-error {
+  border-color: #6b2d2d;
+}
+
+.toast-info {
+  border-color: #2a3040;
+}
+
+.toast-close {
+  border: 1px solid #32394b;
+  background: transparent;
+  color: #8A93A6;
+  border-radius: 0.45rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  cursor: pointer;
+}
+
+.toast-close:hover {
+  border-color: #4a5268;
+  color: #ffffff;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 7, 11, 0.7);
+  display: grid;
+  place-items: center;
+  z-index: 90;
+  padding: 1rem;
+}
+
+.modal-card {
+  width: min(520px, 100%);
+  display: grid;
+  gap: 0.85rem;
+  animation: modalIn 0.18s ease;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -405,6 +486,28 @@ select:focus {
   }
 }
 
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @media (max-width: 720px) {
   .two-cols {
     grid-template-columns: 1fr;
@@ -413,5 +516,11 @@ select:focus {
   .navbar-content {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .toast-viewport {
+    right: 0.7rem;
+    left: 0.7rem;
+    width: auto;
   }
 }

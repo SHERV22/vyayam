@@ -2,11 +2,13 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getDayById, saveWorkoutLog } from '../firebase/firestore'
 import { useAuth } from '../hooks/useAuth'
+import { useToast } from '../context/ToastContext'
 import { useWorkoutStore } from '../store/useWorkoutStore'
 import type { DayPlan } from '../types'
 
 export const WorkoutPage = () => {
   const { user } = useAuth()
+  const { success, error: showError } = useToast()
   const navigate = useNavigate()
   const { programId, dayId } = useParams()
 
@@ -88,8 +90,11 @@ export const WorkoutPage = () => {
 
       completeWorkout()
       setShowComplete(true)
+      success('Workout saved!')
     } catch (finishError) {
-      setError(finishError instanceof Error ? finishError.message : 'Unable to save workout')
+      const message = finishError instanceof Error ? finishError.message : 'Unable to save workout'
+      setError(message)
+      showError(message)
     } finally {
       setFinishing(false)
     }

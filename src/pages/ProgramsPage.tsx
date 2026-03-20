@@ -1,17 +1,21 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ConfirmModal } from '../components/ConfirmModal'
 import { createProgram, deleteProgramById, getProgramsByUser } from '../firebase/firestore'
 import { useAuth } from '../hooks/useAuth'
+import { useToast } from '../context/ToastContext'
 import type { Program } from '../types'
 import { toDateKey } from '../utils/date'
 
 export const ProgramsPage = () => {
   const { user } = useAuth()
+  const { success, error: showError } = useToast()
   const [programs, setPrograms] = useState<Program[]>([])
   const [title, setTitle] = useState('')
   const [startDate, setStartDate] = useState(toDateKey(new Date()))
   const [endDate, setEndDate] = useState(toDateKey(new Date()))
   const [loading, setLoading] = useState(false)
+  const [deletingProgramId, setDeletingProgramId] = useState<string | null>(null)
   const [error, setError] = useState('')
 
   const loadPrograms = async () => {
@@ -37,11 +41,13 @@ export const ProgramsPage = () => {
 
     if (!title.trim()) {
       setError('Program title is required')
+      showError('Program title is required')
       return
     }
 
     if (startDate > endDate) {
       setError('Start date cannot be after end date')
+      showError('Start date cannot be after end date')
       return
     }
 
@@ -52,23 +58,33 @@ export const ProgramsPage = () => {
       await createProgram(user.uid, title.trim(), startDate, endDate)
       setTitle('')
       await loadPrograms()
+      success('Program created!')
     } catch (createError) {
-      setError(createError instanceof Error ? createError.message : 'Unable to create program')
+      const message = createError instanceof Error ? createError.message : 'Unable to create program'
+      setError(message)
+      showError(message)
     } finally {
       setLoading(false)
     }
   }
 
-  const handleDelete = async (programId: string) => {
-    if (!window.confirm('Delete this program and all its days?')) {
+  const handleDelete = async () => {
+    if (!deletingProgramId) {
       return
     }
 
     try {
-      await deleteProgramById(programId)
+      setLoading(true)
+      await deleteProgramById(deletingProgramId)
       await loadPrograms()
+      success('Program deleted.')
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : 'Unable to delete program')
+      const message = deleteError instanceof Error ? deleteError.message : 'Unable to delete program'
+      setError(message)
+      showError(message)
+    } finally {
+      setLoading(false)
+      setDeletingProgramId(null)
     }
   }
 
@@ -134,7 +150,7 @@ export const ProgramsPage = () => {
                 <Link className="primary-button" to={`/programs/${program.id}`}>
                   Open
                 </Link>
-                <button className="ghost-button" onClick={() => void handleDelete(program.id)}>
+                <button className="ghost-button" onClick={() => setDeletingProgramId(program.id)}>
                   Delete
                 </button>
               </div>
@@ -142,6 +158,16 @@ export const ProgramsPage = () => {
           ))
         )}
       </section>
+
+      <ConfirmModal
+        isOpen={Boolean(deletingProgramId)}
+        title="Delete Program"
+        message="This will permanently delete this program, all days, and all exercises."
+        confirmLabel="Delete Program"
+        onConfirm={() => void handleDelete()}
+        onCancel={() => setDeletingProgramId(null)}
+        isConfirming={loading}
+      />
     </div>
   )
 }
