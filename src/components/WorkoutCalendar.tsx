@@ -26,21 +26,21 @@ export const WorkoutCalendar = ({ completedDates }: WorkoutCalendarProps) => {
   }, [completedDates])
 
   return (
-    <section className="card">
+    <section className="card" aria-label="Monthly workout completion calendar">
       <h3 className="card-title">Workout Calendar</h3>
       <p className="muted">{monthLabel}</p>
 
-      <div className="calendar-grid weekday-row">
+      <div className="calendar-grid weekday-row" role="row">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-          <span key={day} className="calendar-weekday">
+          <span key={day} className="calendar-weekday" role="columnheader">
             {day}
           </span>
         ))}
       </div>
 
-      <div className="calendar-grid">
+      <div className="calendar-grid" role="grid" aria-label={`${monthLabel} completion grid`}>
         {Array.from({ length: leadingEmptyCells }).map((_, index) => (
-          <span key={`empty-${index}`} className="calendar-cell empty" />
+          <span key={`empty-${index}`} className="calendar-cell empty" aria-hidden="true" />
         ))}
 
         {Array.from({ length: daysInMonth }).map((_, index) => {
@@ -54,9 +54,15 @@ export const WorkoutCalendar = ({ completedDates }: WorkoutCalendarProps) => {
           const done = completedSet.has(dateKey)
 
           return (
-            <span key={dateKey} className={done ? 'calendar-cell complete' : 'calendar-cell'}>
+            <time
+              key={dateKey}
+              dateTime={dateKey}
+              className={done ? 'calendar-cell complete' : 'calendar-cell'}
+              role="gridcell"
+              aria-label={done ? `${dateKey}: workout complete` : `${dateKey}: no workout logged`}
+            >
               {dayNumber}
-            </span>
+            </time>
           )
         })}
       </div>

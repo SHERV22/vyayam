@@ -86,70 +86,120 @@ export const ExerciseForm = ({ initialValue, onSubmit, onCancel }: ExerciseFormP
   return (
     <form className="exercise-form" onSubmit={handleSubmit}>
       <div className="grid two-cols">
-        <label>
+        <label htmlFor="exercise-name">
           Name
-          <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Bench Press" />
+          <input
+            id="exercise-name"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="Bench Press"
+            aria-describedby={error ? 'exercise-error' : undefined}
+            aria-invalid={Boolean(error)}
+          />
         </label>
-        <label>
+        <label htmlFor="exercise-sets">
           Sets
           <input
+            id="exercise-sets"
             type="number"
             min={1}
             value={sets}
             onChange={(event) => setSets(Number(event.target.value))}
+            aria-describedby={error ? 'exercise-error' : undefined}
+            aria-invalid={Boolean(error)}
           />
         </label>
       </div>
 
       <div className="grid two-cols">
-        <label>
-          <span>Mode</span>
-          <select value={mode} onChange={(event) => setMode(event.target.value as Mode)}>
-            <option value="reps">Reps</option>
-            <option value="duration">Time (seconds)</option>
-          </select>
-        </label>
+        <fieldset>
+          <legend>Mode</legend>
+          <div className="row-actions">
+            <label className="inline-choice" htmlFor="mode-reps">
+              <input
+                id="mode-reps"
+                type="radio"
+                name="exercise-mode"
+                value="reps"
+                checked={mode === 'reps'}
+                onChange={(event) => setMode(event.target.value as Mode)}
+              />
+              Reps
+            </label>
+            <label className="inline-choice" htmlFor="mode-duration">
+              <input
+                id="mode-duration"
+                type="radio"
+                name="exercise-mode"
+                value="duration"
+                checked={mode === 'duration'}
+                onChange={(event) => setMode(event.target.value as Mode)}
+              />
+              Time (seconds)
+            </label>
+          </div>
+        </fieldset>
 
         {mode === 'reps' ? (
-          <label>
+          <label htmlFor="exercise-reps">
             Reps
             <input
+              id="exercise-reps"
               type="number"
               min={1}
               value={reps}
               onChange={(event) => setReps(Number(event.target.value))}
+              aria-describedby={error ? 'exercise-error' : undefined}
+              aria-invalid={Boolean(error)}
             />
           </label>
         ) : (
-          <label>
+          <label htmlFor="exercise-duration">
             Duration (sec)
             <input
+              id="exercise-duration"
               type="number"
               min={1}
               value={duration}
               onChange={(event) => setDuration(Number(event.target.value))}
+              aria-describedby={error ? 'exercise-error' : undefined}
+              aria-invalid={Boolean(error)}
             />
           </label>
         )}
       </div>
 
       <div className="grid two-cols">
-        <label>
+        <label htmlFor="exercise-rest">
           Rest (sec)
           <input
+            id="exercise-rest"
             type="number"
             min={0}
             value={rest}
             onChange={(event) => setRest(Number(event.target.value))}
+            aria-describedby={error ? 'exercise-error' : undefined}
+            aria-invalid={Boolean(error)}
           />
         </label>
-        <label>
+        <label htmlFor="exercise-notes">
           Notes
-          <input value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Optional" />
+          <input
+            id="exercise-notes"
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+            placeholder="Optional"
+            aria-describedby={error ? 'exercise-error' : undefined}
+            aria-invalid={Boolean(error)}
+          />
         </label>
       </div>
 
-      {error ? <p className="error-text">{error}</p> : null}
+      {error ? (
+        <p id="exercise-error" className="error-text" role="alert">
+          {error}
+        </p>
+      ) : null}
 
       <div className="row-actions">
         <button type="submit" className="primary-button" disabled={submitting}>

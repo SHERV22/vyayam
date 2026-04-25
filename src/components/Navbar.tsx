@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useTheme } from '../context/ThemeContext'
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard' },
@@ -9,6 +10,7 @@ const navItems = [
 
 export const Navbar = () => {
   const { logout, user } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
   const handleLogout = async () => {
@@ -24,10 +26,22 @@ export const Navbar = () => {
   return (
     <header className="navbar">
       <div className="container navbar-content">
-        <h1 className="brand">VYAYAM</h1>
+        <div className="brand-wrap">
+          <h1 className="brand">VYAYAM</h1>
+          <p className="brand-subtitle">Strength Through Consistency</p>
+        </div>
 
-        <nav className="nav-links">
+        <nav className="nav-links" aria-label="Primary">
           {user?.isGuest ? <span className="guest-pill">Guest Mode</span> : null}
+          <button
+            type="button"
+            className="ghost-button theme-toggle"
+            onClick={toggleTheme}
+            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+            aria-pressed={theme === 'light'}
+          >
+            {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
+          </button>
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -37,7 +51,7 @@ export const Navbar = () => {
               {item.label}
             </NavLink>
           ))}
-          <button type="button" className="ghost-button" onClick={handleLogout}>
+          <button type="button" className="ghost-button" onClick={handleLogout} aria-label="Log out">
             Logout
           </button>
         </nav>

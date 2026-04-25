@@ -1,3 +1,5 @@
+import { useEffect, useId, useRef } from 'react'
+
 interface ConfirmModalProps {
   isOpen: boolean
   title: string
@@ -19,6 +21,29 @@ export const ConfirmModal = ({
   onCancel,
   isConfirming = false,
 }: ConfirmModalProps) => {
+  const titleId = useId()
+  const messageId = useId()
+  const cancelButtonRef = useRef<HTMLButtonElement | null>(null)
+
+  useEffect(() => {
+    if (!isOpen) {
+      return
+    }
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onCancel()
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    cancelButtonRef.current?.focus()
+
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [isOpen, onCancel])
+
   if (!isOpen) {
     return null
   }
@@ -29,14 +54,23 @@ export const ConfirmModal = ({
         className="modal-card card"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="confirm-modal-title"
+        aria-labelledby={titleId}
+        aria-describedby={messageId}
         onClick={(event) => event.stopPropagation()}
       >
-        <h3 id="confirm-modal-title">{title}</h3>
-        <p className="muted">{message}</p>
+        <h3 id={titleId}>{title}</h3>
+        <p id={messageId} className="muted">
+          {message}
+        </p>
 
         <div className="row-actions">
-          <button type="button" className="ghost-button" onClick={onCancel} disabled={isConfirming}>
+          <button
+            ref={cancelButtonRef}
+            type="button"
+            className="ghost-button"
+            onClick={onCancel}
+            disabled={isConfirming}
+          >
             {cancelLabel}
           </button>
           <button type="button" className="danger-button" onClick={onConfirm} disabled={isConfirming}>

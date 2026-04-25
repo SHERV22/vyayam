@@ -1,4 +1,16 @@
-export const toDateKey = (value: Date) => value.toISOString().slice(0, 10)
+const pad2 = (value: number) => value.toString().padStart(2, '0')
+
+export const toDateKey = (value: Date) => {
+  const year = value.getFullYear()
+  const month = pad2(value.getMonth() + 1)
+  const day = pad2(value.getDate())
+  return `${year}-${month}-${day}`
+}
+
+const toDayNumber = (value: string) => {
+  const [year, month, day] = value.split('-').map(Number)
+  return Math.floor(Date.UTC(year, (month ?? 1) - 1, day ?? 1) / (1000 * 60 * 60 * 24))
+}
 
 export const parseDateKey = (value: string) => {
   const [year, month, day] = value.split('-').map(Number)
@@ -63,10 +75,9 @@ export const calculateCurrentStreak = (dates: string[]) => {
   let streak = 1
 
   for (let index = 1; index < unique.length; index += 1) {
-    const previous = parseDateKey(unique[index - 1])
-    const current = parseDateKey(unique[index])
-    const diffMs = previous.getTime() - current.getTime()
-    const diffDays = diffMs / (1000 * 60 * 60 * 24)
+    const previousDay = toDayNumber(unique[index - 1])
+    const currentDay = toDayNumber(unique[index])
+    const diffDays = previousDay - currentDay
 
     if (diffDays === 1) {
       streak += 1

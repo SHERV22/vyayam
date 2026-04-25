@@ -40,8 +40,8 @@ export const WorkoutPage = () => {
 
   useEffect(() => {
     const loadDay = async () => {
-      if (!dayId) {
-        setError('Day id is missing')
+      if (!dayId || !programId) {
+        setError('Workout route is invalid')
         setLoading(false)
         return
       }
@@ -53,6 +53,11 @@ export const WorkoutPage = () => {
 
         if (!data) {
           setError('Workout day not found')
+          return
+        }
+
+        if (data.programId !== programId) {
+          setError('Workout route does not match selected program')
           return
         }
 
@@ -69,10 +74,10 @@ export const WorkoutPage = () => {
     return () => {
       resetWorkout()
     }
-  }, [dayId, resetWorkout])
+  }, [dayId, programId, resetWorkout])
 
   const handleFinishWorkout = useCallback(async () => {
-    if (!user || !programId || !day) {
+    if (!user || !day) {
       return
     }
 
@@ -82,7 +87,7 @@ export const WorkoutPage = () => {
 
       await saveWorkoutLog({
         userId: user.uid,
-        programId,
+        programId: day.programId,
         date: day.date,
         completedExercises,
         duration,
@@ -98,7 +103,7 @@ export const WorkoutPage = () => {
     } finally {
       setFinishing(false)
     }
-  }, [completeWorkout, completedExercises, day, programId, user, workoutStartTime])
+  }, [completeWorkout, completedExercises, day, user, workoutStartTime])
 
   const goToNextExercise = useCallback(() => {
     const nextIndex = currentExerciseIndex + 1
